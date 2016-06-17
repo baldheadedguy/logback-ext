@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
+import ch.qos.logback.core.spi.FilterReply;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.logs.AWSLogsClient;
 import com.amazonaws.services.logs.model.*;
@@ -85,6 +86,12 @@ public abstract class AbstractCloudWatchAppender<E extends DeferredProcessingAwa
     }
 
     @Override
+    public FilterReply getFilterChainDecision(E event) {
+        //apply log level filter
+        return (((ILoggingEvent)event).getLevel().levelInt >= this.logLevelFilter.levelInt)?FilterReply.ACCEPT: FilterReply.DENY;
+    }
+
+    @Override
     public void start() {
         if (RegionUtils.getRegion(region) == null) {
             addError(format("Region not set or invalid for appender '%s'", getName()));
@@ -152,15 +159,11 @@ public abstract class AbstractCloudWatchAppender<E extends DeferredProcessingAwa
 
     @Override
     protected void handle(final E event, final String encoded) throws Exception {
-        //apply log level filter
-        ILoggingEvent e = (ILoggingEvent) event;
-        if(e.getLevel().levelInt >= this.logLevelFilter.levelInt) {
-            CommonEventAttributes attributes = applyCommonEventAttributes(event);
-            InputLogEvent ile = new InputLogEvent().withTimestamp(attributes.getTimeStamp()).withMessage(encoded);
-            if(!queue.offer(ile, getMaxFlushTime(), TimeUnit.MILLISECONDS)) {
-                addWarn(format("No space available in internal queue after %d ms waiting, logging event was discarded",
-                               getMaxFlushTime()));
-            }
+        CommonEventAttributes attributes = applyCommonEventAttributes(event);
+        InputLogEvent ile = new InputLogEvent().withTimestamp(attributes.getTimeStamp()).withMessage(encoded);
+        if(!queue.offer(ile, getMaxFlushTime(), TimeUnit.MILLISECONDS)) {
+            addWarn(format("No space available in internal queue after %d ms waiting, logging event was discarded",
+                           getMaxFlushTime()));
         }
     }
 
