@@ -1,5 +1,7 @@
 package org.eluder.logback.ext.cloudwatch.appender;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
 import com.amazonaws.regions.RegionUtils;
@@ -28,6 +30,7 @@ public abstract class AbstractCloudWatchAppender<E extends DeferredProcessingAwa
     private static final int DEFAULT_INTERNAL_QUEUE_SIZE = 8192;
     private static final boolean DEFAULT_SKIP_CREATE = false;
 
+    private Level logLevelFilter;
     private String region;
     private String logGroup;
     private String logStream;
@@ -47,6 +50,10 @@ public abstract class AbstractCloudWatchAppender<E extends DeferredProcessingAwa
 
     protected AbstractCloudWatchAppender(AwsSupport awsSupport, Filter<E> sdkLoggingFilter) {
         super(awsSupport, sdkLoggingFilter);
+    }
+
+    public final void setLogLevelFilter(String logLevel){
+        this.logLevelFilter = Level.toLevel(logLevel);
     }
 
     public final void setRegion(String region) {
@@ -145,11 +152,15 @@ public abstract class AbstractCloudWatchAppender<E extends DeferredProcessingAwa
 
     @Override
     protected void handle(final E event, final String encoded) throws Exception {
-        CommonEventAttributes attributes = applyCommonEventAttributes(event);
-        InputLogEvent ile = new InputLogEvent().withTimestamp(attributes.getTimeStamp()).withMessage(encoded);
-        if (!queue.offer(ile, getMaxFlushTime(), TimeUnit.MILLISECONDS)) {
-            addWarn(format("No space available in internal queue after %d ms waiting, logging event was discarded",
-                           getMaxFlushTime()));
+        //apply log level filter
+        ILoggingEvent e = (ILoggingEvent) event;
+        if(e.getLevel().levelInt >= this.logLevelFilter.levelInt) {
+            CommonEventAttributes attributes = applyCommonEventAttributes(event);
+            InputLogEvent ile = new InputLogEvent().withTimestamp(attributes.getTimeStamp()).withMessage(encoded);
+            if(!queue.offer(ile, getMaxFlushTime(), TimeUnit.MILLISECONDS)) {
+                addWarn(format("No space available in internal queue after %d ms waiting, logging event was discarded",
+                               getMaxFlushTime()));
+            }
         }
     }
 

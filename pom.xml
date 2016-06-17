@@ -7,7 +7,7 @@
   <parent>
     <artifactId>eluder-parent</artifactId>
     <groupId>org.eluder</groupId>
-    <version>8-SNAPSHOT</version>
+    <version>8</version>
     <relativePath></relativePath>
   </parent>
 
@@ -45,7 +45,7 @@
     <java.version>1.7</java.version>
     <guava.version>18.0</guava.version>
     <jackson.version>2.5.4</jackson.version>
-    <aws.version>1.10.2</aws.version>
+    <aws.version>1.10.75</aws.version>
     <lmax.version>3.3.2</lmax.version>
     <jmh.version>1.10.5</jmh.version>
   </properties>
