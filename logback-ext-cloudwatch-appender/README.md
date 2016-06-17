@@ -56,6 +56,7 @@ Complete list of the appender properties.
 | `secretKey` | *string* | IAM secret key. |
 | `maxPayloadSize` | *integer* | **Default: 256**<br>Maximum log event payload size in kilobytes. |
 | `maxFlushTime` | *integer* | **Default: 3000**<br>Maximum wait time in milliseconds to wait if internal queue is full and time to wait for the remaining queue to flush events on appender stop. |
+| `logLevelFilter` | *string* | **Default: ALL**<br>An optional appender level filter for logging level.|
 
 
 ### Required IAM policy

@@ -30,7 +30,7 @@ public abstract class AbstractCloudWatchAppender<E extends DeferredProcessingAwa
     private static final int DEFAULT_INTERNAL_QUEUE_SIZE = 8192;
     private static final boolean DEFAULT_SKIP_CREATE = false;
 
-    private Level logLevelFilter;
+    private Level logLevelFilter = Level.ALL;
     private String region;
     private String logGroup;
     private String logStream;
